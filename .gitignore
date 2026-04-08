@@ -1,0 +1,43 @@
+# Environment
+.env
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Generated database (recreate with: python seed_db.py)
+data/ecommerce.db
+data/*.db-shm
+data/*.db-wal
+
+# Build artifacts (recreate with: python take_screenshots.py)
+assets/frame_*.png
+
+# Personal interview prep (not part of the project)
+interview_questions.md
+interview_questions.docx
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data
+data/*.csv
+!data/.gitkeep
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Interview prep (personal)
+interview_questions.md
+interview_questions.docx

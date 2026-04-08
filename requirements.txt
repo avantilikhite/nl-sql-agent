@@ -1,0 +1,8 @@
+langchain>=0.3
+langchain-community>=0.3
+langchain-openai>=0.2
+langgraph>=0.2
+openai>=1.0
+sqlalchemy>=2.0
+streamlit>=1.38
+python-dotenv>=1.0
