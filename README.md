@@ -63,7 +63,7 @@ customers ──< orders ──< order_items >── products >── categories
 - `PRAGMA foreign_keys=ON` for referential integrity
 - `random.seed(42)` makes all fake data fully reproducible
 
-**Design trade-offs (reviewed & defended):**
+**Design trade-offs:**
 | Decision | Rationale |
 |---|---|
 | `REAL` for prices (not INTEGER cents) | SQLite has no `DECIMAL` type; values are `round()`ed to 2 dp on write — acceptable for analytics, not ledger use |
@@ -75,41 +75,9 @@ customers ──< orders ──< order_items >── products >── categories
 
 ## Testing
 
-**75 tests** across three test files — run with:
-```bash
-python -m pytest tests/ -v
-```
-
-### Unit Tests (`tests/test_seed_db.py`) — 30 tests
-| Test Class | What It Verifies |
-|---|---|
-| `TestDataPools` | Data pools are internally consistent (categories ↔ products, prices > 0, states = 2 chars) |
-| `TestCreateTables` | All 5 tables exist, STRICT rejects wrong types, indexes created, idempotent |
-| `TestSeedCustomers` | Correct count, unique emails, valid ISO dates, 2-char states |
-| `TestSeedCategoriesAndProducts` | Correct counts, FK integrity, stock range |
-| `TestSeedOrders` | Count, totals match line items, all statuses present, date range, no duplicate items |
-
-### Integration Tests (`tests/test_integration.py`) — 21 tests
-| Test Class | What It Verifies |
-|---|---|
-| `TestCheckConstraints` | Negative prices, zero qty, invalid status, negative stock/total, bad state length — all rejected |
-| `TestForeignKeyEnforcement` | Orphan orders, products, items rejected; customer with orders can't be deleted |
-| `TestUniqueConstraints` | Duplicate emails, categories, product-per-order — all rejected |
-| `TestAnalyticalQueries` | Revenue by category, top customers, monthly orders, orders by city, avg order value |
-| `TestReproducibility` | Two `seed(42)` databases produce identical data |
-| `TestMainRoundTrip` | `main()` creates the file, is idempotent |
-
-### Agent Tests (`tests/test_agent.py`) — 24 tests
-| Test Class | Tests | What It Verifies |
-|---|---|---|
-| `TestGetDatabase` | 3 | Connects to existing DB, raises on missing file, includes sample rows in table info |
-| `TestCreateAgent` | 4 | Raises without API key, passes correct model, system prompt wiring, toolkit tool injection |
-| `TestSystemPrompt` | 5 | Contains read-only (no DML), LIMIT, retry, schema-check, and scope guardrail (Rule 10) instructions |
-| `TestAsk` | 5 | Message assembly, response extraction, history replay as Human/AI pairs, empty/None history handling |
-| `TestDefaults` | 2 | Default DB path points to `data/ecommerce.db`, default model is `gpt-4o-mini` |
-| `TestReadOnlyGuard` | 5 | INSERT/DROP/DELETE/UPDATE blocked at DB level, SELECT still works |
-
-All unit/integration tests use in-memory SQLite — no disk I/O, no API calls. Agent tests mock the LLM. Full suite runs in ~1 second.
+- **Unit tests** (`test_seed_db.py`) — validate data pools, table creation, seeding logic, and reproducibility
+- **Integration tests** (`test_integration.py`) — enforce CHECK constraints, foreign keys, unique constraints, and verify analytical queries
+- **Agent tests** (`test_agent.py`) — test database connection, agent creation, system prompt rules, conversation history, read-only guard, and scope guardrail
 
 ## Project Structure
 
@@ -170,16 +138,4 @@ nl-sql-agent/
    streamlit run app.py
    ```
 
-## Demo Script
 
-The sidebar includes a curated 5-question demo flow (run in order for best showcase):
-
-| # | Question | What it demonstrates |
-|---|---|---|
-| 1️⃣ | "What are the top 5 products by total revenue?" | Multi-table JOIN + aggregation |
-| 2️⃣ | "Now break that down by month" | Conversation memory (follow-up) |
-| 3️⃣ | "Which customers placed the most orders but have the lowest average order value? Show the top 10." | Complex multi-metric ranking |
-| 4️⃣ | "Delete all cancelled orders" | Safety guardrail (read-only refusal) |
-| 5️⃣ | "What interesting patterns do you see in the order data? Any seasonality or trends?" | Autonomous multi-step reasoning |
-
-Plus 4 bonus questions: return rate by category, revenue per customer by state, YoY category growth, and customers who never ordered.
