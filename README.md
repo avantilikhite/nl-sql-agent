@@ -40,6 +40,10 @@ User ──► Streamlit Chat UI (app.py)
 - **Scope guardrail:** Rule 10 constrains the agent to data-related questions only — it declines weather, coding help, or general-knowledge queries.
 - **History cap:** Only the last 10 conversation turns are sent as context, preventing token overflow on long sessions.
 
+## Why ReAct, Not RAG?
+
+RAG embeds documents as text chunks and retrieves approximate matches — great for unstructured data like PDFs, but wrong for a relational database where questions have **exact answers**. A ReAct agent instead writes and executes SQL directly, preserving full relational power (JOINs, aggregations, filtering) and reasoning in multiple steps — inspect schema, write query, observe results, refine — exactly how a human analyst works.
+
 ## Database Schema
 
 5 normalized tables (3NF) with enforced types, foreign keys, CHECK constraints, and indexes:
